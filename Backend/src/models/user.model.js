@@ -1,5 +1,7 @@
 const mongoose=require('mongoose')
 const validator = require('validator')
+const bcrypt=require('bcrypt')
+const jwt=require('jsonwebtoken')
 
 const userSchema=mongoose.Schema({
 
@@ -73,10 +75,32 @@ userSchema.pre("save",async function (next) {
         ) {
             this.age--;
         }
+        this.password=await bcrypt.hash(this.password,Number(process.env.HASH_SALT_ROUNDS))
         next()
     } catch (error) {
         next(error)
     }
 })
+
+userSchema.methods.generateAccessToken=function () {
+    return jwt.sign(
+        {
+            _id:this._id,
+            username:this.username,
+            email:this.email
+        },
+        process.env.ACCESS_TOKEN_SECRET_KEY,
+        {expiresIn:process.env.ACCESS_TOKEN_EXPIRY}
+    )
+}
+userSchema.methods.generateRefreshToken=function () {
+    return jwt.sign(
+        {
+            _id:this._id
+        },
+        process.env.REFRESH_TOKEN_SECRET_KEY,
+        {expiresIn:process.env.REFRESH_TOKEN_EXPIRY}
+    )
+}
 
 module.exports=mongoose.model("User",userSchema)
