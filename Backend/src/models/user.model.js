@@ -20,6 +20,8 @@ const userSchema=mongoose.Schema({
         lowercase:true,
         required:true,
         
+
+        
     }
 
 },{timeStamps:true})
