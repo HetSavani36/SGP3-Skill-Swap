@@ -2,6 +2,7 @@ const asyncHandler=require('../utils/asyncHandler')
 const ApiError=require('../utils/ApiError')
 const ApiResponse=require('../utils/ApiResponse')
 const User=require('../models/user.model')
+const uploadOnCloudinary=require('../utils/cloudinary')
 
 const generateRefreshAndAccessToken=async(_id)=>{
     try {
@@ -54,7 +55,7 @@ const login=asyncHandler(async (req,res) => {
 
 const register=asyncHandler(async (req,res) => {
     const {
-        username,email,fullname,profilePhoto,coverPhoto,password,dob,location
+        username,email,fullname,password,dob,location
     }=req.body
 
     if(!username || !fullname || !email || !password || !dob || !location) throw new ApiError(400,"please provide all details")
@@ -72,6 +73,27 @@ const register=asyncHandler(async (req,res) => {
     if(!user) throw new ApiError(400,"user creation failed")
 
     const {accessToken,refreshToken}=await generateRefreshAndAccessToken(user._id)
+
+    
+    if (!req.files) throw new ApiError(400, "No file uploaded");
+
+    const profilePhoto = req.files['profilePhoto']?.[0];
+    const coverPhoto = req.files['coverPhoto']?.[0];
+    
+    const profile = await uploadOnCloudinary(profilePhoto.path);
+    console.log(profile);
+    const cover = await uploadOnCloudinary(coverPhoto.path);
+    console.log(cover);
+
+    
+    if (!profile && !cover) throw new ApiError(500, "Cloudinary upload failed");
+    if (!profile ) throw new ApiError(500, "profile upload failed");
+    if (!cover) throw new ApiError(500, "cover upload failed");
+    
+    user.profilePhoto=profile
+    user.coverPhoto=cover
+
+    await user.save({validateBeforeSave:false})
 
     const newUser=User.findById(user._id).select("-password -refreshToken -accessToken")
     if(!newUser) throw new ApiError(400,"new user creation failed")

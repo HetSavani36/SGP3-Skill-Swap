@@ -7,9 +7,16 @@ const {
     register,
     logout
 }=require('../controllers/user.controller')
+const upload = require('../middlewares/multer.middleware')
 
 router.post('/login',login)
-router.post('/register',register)
+router.post('/register',
+    upload.fields([
+        {name:"profilePhoto",maxCount:1},
+        {name:"coverPhoto",maxCount:1}
+    ]),
+    register
+)
 router.post('/logout',verifyJWT,logout)
 
 module.exports=router
