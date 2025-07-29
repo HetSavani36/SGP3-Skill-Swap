@@ -32,7 +32,7 @@ const login=asyncHandler(async (req,res) => {
     const isPassCorr=await user.comparePassword(password);    
     if(!isPassCorr) throw new ApiError(400,"incorrect password")
         
-    const {refreshToken,accessToken}=await generateRefreshAndAccessToken(user._id)
+    const {accessToken,refreshToken}=await generateRefreshAndAccessToken(user._id)
 
     const newUser=User.findById(user._id).select("-password -refreshToken -accessToken")
     if(!newUser) throw new ApiError(400,"new user creation failed")
@@ -71,7 +71,7 @@ const register=asyncHandler(async (req,res) => {
     })
     if(!user) throw new ApiError(400,"user creation failed")
 
-    const {refreshToken,accessToken}=await generateRefreshAndAccessToken(user._id)
+    const {accessToken,refreshToken}=await generateRefreshAndAccessToken(user._id)
 
     const newUser=User.findById(user._id).select("-password -refreshToken -accessToken")
     if(!newUser) throw new ApiError(400,"new user creation failed")
@@ -91,4 +91,23 @@ const register=asyncHandler(async (req,res) => {
 
 })
 
-module.exports={login,register};
+const logout=asyncHandler(async(req,res)=>{
+
+    await User.findByIdAndUpdate(req.user._id,
+        {$set:{refreshToken:"1"}}
+    )
+
+    const options={
+        httpOnly:true,
+        secure:true
+    }
+
+    res
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(
+        new ApiResponse(201,{},"logout successfull")
+    )
+})
+
+module.exports={login,register,logout};
