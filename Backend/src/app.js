@@ -4,6 +4,8 @@ const cors=require('cors')
 const cookieParser=require('cookie-parser')
 require('dotenv').config({path:'./.env',debug:true})
 
+const userRoutes=require('./routes/user.route')
+
 app.use(express.json({limit:"20kb"}))
 app.use(cors({
     origin:process.env.CORS_ORIGIN,
@@ -12,6 +14,10 @@ app.use(cors({
 app.use(express.urlencoded({extended:true,limit:"20kb"}))   
 app.use(express.static('public'))
 app.use(cookieParser())
+
+
+app.use("/api/user",userRoutes)
+
 
 app.use('/',(req,res)=>{
     console.log('error 404 page not found');  
