@@ -75,6 +75,7 @@ userSchema.pre("save",async function (next) {
         ) {
             this.age--;
         }
+        if(!this.isModified("password")) return next()
         this.password=await bcrypt.hash(this.password,Number(process.env.HASH_SALT_ROUNDS))
         next()
     } catch (error) {
@@ -101,6 +102,10 @@ userSchema.methods.generateRefreshToken=function () {
         process.env.REFRESH_TOKEN_SECRET_KEY,
         {expiresIn:process.env.REFRESH_TOKEN_EXPIRY}
     )
+}
+
+userSchema.methods.comparePassword=async function (password) {
+    return await bcrypt.compare(password,this.password)
 }
 
 module.exports=mongoose.model("User",userSchema)
