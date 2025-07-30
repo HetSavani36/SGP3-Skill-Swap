@@ -5,7 +5,8 @@ const verifyJWT = require('../middlewares/auth.middleware')
 const {
     login,
     register,
-    logout
+    logout,
+    refreshToken
 }=require('../controllers/user.controller')
 const upload = require('../middlewares/multer.middleware')
 
@@ -18,5 +19,6 @@ router.post('/register',
     register
 )
 router.post('/logout',verifyJWT,logout)
+router.post('/refreshToken',refreshToken)
 
 module.exports=router

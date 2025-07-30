@@ -23,4 +23,8 @@ app.use('/',(req,res)=>{
     console.log('error 404 page not found');  
 })
 
+//image change
+//profile change
+//password change
+
 module.exports=app

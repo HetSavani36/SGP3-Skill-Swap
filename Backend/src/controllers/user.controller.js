@@ -3,6 +3,7 @@ const ApiError=require('../utils/ApiError')
 const ApiResponse=require('../utils/ApiResponse')
 const User=require('../models/user.model')
 const uploadOnCloudinary=require('../utils/cloudinary')
+const jwt=require('jsonwebtoken')
 
 const generateRefreshAndAccessToken=async(_id)=>{
     try {
@@ -81,9 +82,7 @@ const register=asyncHandler(async (req,res) => {
     const coverPhoto = req.files['coverPhoto']?.[0];
     
     const profile = await uploadOnCloudinary(profilePhoto.path);
-    console.log(profile);
     const cover = await uploadOnCloudinary(coverPhoto.path);
-    console.log(cover);
 
     
     if (!profile && !cover) throw new ApiError(500, "Cloudinary upload failed");
@@ -103,7 +102,6 @@ const register=asyncHandler(async (req,res) => {
         secure:true
     }
 
-    //photo baki che
     res
     .cookie("accessToken",accessToken,options)
     .cookie("refreshToken",refreshToken,options)
@@ -132,4 +130,32 @@ const logout=asyncHandler(async(req,res)=>{
     )
 })
 
-module.exports={login,register,logout};
+const refreshToken=asyncHandler(async(req,res)=>{
+    const token=req.cookies?.refreshToken
+    if(!token) throw new ApiError(401,"no refresh Token Found")
+
+    const decoded=jwt.verify(token,process.env.REFRESH_TOKEN_SECRET_KEY)
+    if(!decoded) throw new ApiError(403,"token not verified")
+            
+    const _id=decoded._id
+    const user=await User.findById(_id)
+    if(user.refreshToken!=token) throw new ApiError(402,"token mismatch")
+
+    const {accessToken,refreshToken}=await generateRefreshAndAccessToken(_id)
+    user.refreshToken=refreshToken
+    user.save({validateBeforeSave:false})
+    
+    const options={
+        httpOnly:true,
+        secure:true
+    }
+
+    res
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(201,{},"token refreshed successfully")
+    )
+})
+
+module.exports={login,register,logout,refreshToken};
