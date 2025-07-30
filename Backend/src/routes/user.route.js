@@ -6,7 +6,11 @@ const {
     login,
     register,
     logout,
-    refreshToken
+    refreshToken,
+    addSkillOffered,
+    addSkillWanted,
+    removeSkillOffered,
+    removeSkillWanted
 }=require('../controllers/user.controller')
 const upload = require('../middlewares/multer.middleware')
 
@@ -20,5 +24,11 @@ router.post('/register',
 )
 router.post('/logout',verifyJWT,logout)
 router.post('/refreshToken',refreshToken)
+
+router.post('/skill/offered/add',verifyJWT,addSkillOffered)
+router.post('/skill/wanted/add',verifyJWT,addSkillWanted)
+
+router.post('/skill/offered/remove',verifyJWT,removeSkillOffered)
+router.post('/skill/wanted/remove',verifyJWT,removeSkillWanted)
 
 module.exports=router

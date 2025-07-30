@@ -69,7 +69,9 @@ const register=asyncHandler(async (req,res) => {
         fullname:fullname,
         password:password,
         dob:dob,
-        location:location
+        location:location,
+        skillsOffered:[],
+        skillsWanted:[],
     })
     if(!user) throw new ApiError(400,"user creation failed")
 
@@ -158,4 +160,83 @@ const refreshToken=asyncHandler(async(req,res)=>{
     )
 })
 
-module.exports={login,register,logout,refreshToken};
+const addSkillOffered=asyncHandler(async(req,res)=>{
+    const {_id}=req.user
+    const {skill}=req.body
+    if(!skill) throw new ApiError(402,"please add skill")
+    
+    const user=await User.findByIdAndUpdate(_id,{
+        $push:{
+            skillsOffered:skill
+        },
+    },
+        {new:true}
+    )
+    res.json(
+        new ApiResponse(201,user.skillsOffered,"added skills")
+    )
+})
+
+
+const addSkillWanted=asyncHandler(async(req,res)=>{
+    const {_id}=req.user
+    const {skill}=req.body
+    if(!skill) throw new ApiError(402,"please add skill")
+    
+    const user=await User.findByIdAndUpdate(_id,{
+        $push:{
+            skillsWanted:skill
+        },
+    },
+        {new:true}
+    )
+    res.json(
+        new ApiResponse(201,user.skillsWanted,"added skills")
+    )
+})
+
+const removeSkillOffered=asyncHandler(async(req,res)=>{
+    const {_id}=req.user
+    const skill = req.body.skill.toLowerCase().trim();
+    if(!skill) throw new ApiError(402,"please add skill")
+
+    const user=await User.findByIdAndUpdate(_id,{
+        $pull:{
+            skillsOffered:skill
+        },
+    },
+        {new:true}
+    )
+    res.json(
+        new ApiResponse(201,user.skillsOffered,"added skills")
+    )
+})
+
+
+const removeSkillWanted=asyncHandler(async(req,res)=>{
+    const {_id}=req.user
+    const skill = req.body.skill.toLowerCase().trim();
+    if(!skill) throw new ApiError(402,"please add skill")  
+    
+    const user=await User.findByIdAndUpdate(_id,{
+        $pull:{
+            skillsWanted:skill
+        },
+    },
+        {new:true}
+    )
+    res.json(
+        new ApiResponse(201,user.skillsWanted,"added skills")
+    )
+})
+
+module.exports={
+    login,
+    register,
+    logout,
+    refreshToken,
+    addSkillOffered,
+    addSkillWanted,
+    removeSkillOffered,
+    removeSkillWanted
+};
