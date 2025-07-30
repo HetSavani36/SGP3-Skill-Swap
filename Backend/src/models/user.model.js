@@ -55,6 +55,29 @@ const userSchema=mongoose.Schema({
         type:String,
         trim:true
     },
+    skillsOffered:[
+        {
+            type:String,
+            trim:true,
+            lowercase:true
+        }
+    ],
+    skillsWanted:[
+        {
+            type:String,
+            trim:true,
+            lowercase:true
+        }
+    ],
+    availability:{
+        type:Boolean,
+        default:true    //true if available
+    },
+    status:{
+        type:String,
+        enum:["public","private"],
+        default:"public"
+    },
     isAdmin:{
         type:Boolean,
         default:false
