@@ -18,7 +18,7 @@ app.use(cookieParser())
 
 
 app.use("/api/user",userRoutes)
-app.use("/api/friend",friendRoutes)
+app.use("/api/user",friendRoutes)
 
 
 app.use('/',(req,res)=>{

@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose')
 const Friend = require('../models/friend.model')
 const User = require('../models/user.model')
 const ApiError = require('../utils/ApiError')
@@ -46,7 +47,7 @@ const acceptRequest=asyncHandler(async(req,res)=>{
     request.save({validateBeforeSave:false})
 
     res.json(
-        new ApiResponse(200,"request accepted")
+        new ApiResponse(200,[],"request accepted")
     )
 })
 
@@ -67,12 +68,93 @@ const rejectRequest=asyncHandler(async(req,res)=>{
     if(!deletedReq) throw new ApiError(403,"request rejection failed")
 
     res.json(
-        new ApiResponse(200,"request rejected")
+        new ApiResponse(200,{},"request rejected")
+    )
+})
+
+const getAllPendingRequests=asyncHandler(async(req,res)=>{
+    const _id=new mongoose.Types.ObjectId(req.user._id)
+    const user=await User.findById(_id)
+
+    if(!user) throw new ApiError(403,"no such user")
+
+    const requests=await Friend.aggregate([
+        {
+            $match : {to: _id}
+        },
+        {
+            $match:{pending:false}
+        },
+        {
+            $project:{
+                from:1
+            }
+        }
+    ])
+    
+    const count=requests.length
+    res.json(
+        new ApiResponse(200,{requests,count:count},"pending requests")
+    )
+})
+
+const getAllFollowers=asyncHandler(async(req,res)=>{
+    const _id=new mongoose.Types.ObjectId(req.user._id)
+    const user=await User.findById(_id)
+
+    if(!user) throw new ApiError(403,"no such user")
+
+    const followers=await Friend.aggregate([
+        {
+            $match : {to: _id}
+        },
+        {
+            $match:{pending:true}
+        },
+        {
+            $project:{
+                from:1
+            }
+        }
+    ])
+    
+    const count=followers.length
+    res.json(
+        new ApiResponse(200,{followers,count:count},"followers list")
+    )
+})
+
+const getAllFollowing=asyncHandler(async(req,res)=>{
+const _id=new mongoose.Types.ObjectId(req.user._id)
+    const user=await User.findById(_id)
+
+    if(!user) throw new ApiError(403,"no such user")
+
+    const following=await Friend.aggregate([
+        {
+            $match : {from: _id}
+        },
+        {
+            $match:{pending:true}
+        },
+        {
+            $project:{
+                to:1
+            }
+        }
+    ])
+    
+    const count=following.length
+    res.json(
+        new ApiResponse(200,{following,count:count},"following list")
     )
 })
 
 module.exports={
     requestFriend,
     acceptRequest,
-    rejectRequest
+    rejectRequest,
+    getAllPendingRequests,
+    getAllFollowers,
+    getAllFollowing
 }

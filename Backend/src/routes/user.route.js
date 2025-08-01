@@ -14,6 +14,17 @@ const {
     toggleAvailability,
     toggleStatus
 }=require('../controllers/user.controller')
+
+const {
+    requestFriend,
+    acceptRequest,
+    rejectRequest,
+    getAllPendingRequests,
+    getAllFollowers,
+    getAllFollowing
+}=require('../controllers/friend.controller')
+
+
 const upload = require('../middlewares/multer.middleware')
 
 router.post('/login',login)
@@ -35,5 +46,13 @@ router.post('/skill/wanted/remove',verifyJWT,removeSkillWanted)
 
 router.post('/toggle/availability',verifyJWT,toggleAvailability)
 router.post('/toggle/status',verifyJWT,toggleStatus)
+
+router.post('/request/:userId',verifyJWT,requestFriend)
+router.post('/request/accept/:userId',verifyJWT,acceptRequest)
+router.post('/request/reject/:userId',verifyJWT,rejectRequest)
+
+router.get('/request/all/pending',verifyJWT,getAllPendingRequests)
+router.get('/all/followers',verifyJWT,getAllFollowers)
+router.get('/all/following',verifyJWT,getAllFollowing)
 
 module.exports=router
