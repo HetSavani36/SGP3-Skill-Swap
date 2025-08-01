@@ -5,6 +5,7 @@ const cookieParser=require('cookie-parser')
 require('dotenv').config({path:'./.env',debug:true})
 
 const userRoutes=require('./routes/user.route')
+const friendRoutes=require('./routes/friend.route')
 
 app.use(express.json({limit:"20kb"}))
 app.use(cors({
@@ -17,6 +18,7 @@ app.use(cookieParser())
 
 
 app.use("/api/user",userRoutes)
+app.use("/api/friend",friendRoutes)
 
 
 app.use('/',(req,res)=>{

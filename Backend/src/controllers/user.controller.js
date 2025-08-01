@@ -63,6 +63,24 @@ const register=asyncHandler(async (req,res) => {
     const isExists=await User.findOne({$or:[{username},{email}]}) 
     if(isExists) throw new ApiError(400,"user already exists .please login")
 
+    let profilePhotoUrl = "https://i.ibb.co/2kRrzBJ/default-profile.png";
+    let coverPhotoUrl = "https://i.ibb.co/2kRrzBJ/default-profile.png";
+    if (req.files) {
+        const profilePhoto = req.files['profilePhoto']?.[0];
+        const coverPhoto = req.files['coverPhoto']?.[0];
+
+        if (profilePhoto?.path) {
+            const uploadedProfile = await uploadOnCloudinary(profilePhoto.path);
+            if (uploadedProfile) profilePhotoUrl = uploadedProfile;
+        }
+
+        if (coverPhoto?.path) {
+            const uploadedCover = await uploadOnCloudinary(coverPhoto.path);
+            if (uploadedCover) coverPhotoUrl = uploadedCover;
+        }
+    }
+
+
     const user=await User.create({
         username:username.toLowerCase(),
         email:email.toLowerCase(),
@@ -70,34 +88,14 @@ const register=asyncHandler(async (req,res) => {
         password:password,
         dob:dob,
         location:location,
+        profilePhoto: profilePhotoUrl,
+        coverPhoto: coverPhotoUrl,
         skillsOffered:[],
         skillsWanted:[],
     })
     if(!user) throw new ApiError(400,"user creation failed")
 
     const {accessToken,refreshToken}=await generateRefreshAndAccessToken(user._id)
-
-    
-    if (!req.files) throw new ApiError(400, "No file uploaded");
-
-    const profilePhoto = req.files['profilePhoto']?.[0];
-    const coverPhoto = req.files['coverPhoto']?.[0];
-    
-    const profile = await uploadOnCloudinary(profilePhoto.path);
-    const cover = await uploadOnCloudinary(coverPhoto.path);
-
-    
-    if (!profile && !cover) throw new ApiError(500, "Cloudinary upload failed");
-    if (!profile ) throw new ApiError(500, "profile upload failed");
-    if (!cover) throw new ApiError(500, "cover upload failed");
-    
-    user.profilePhoto=profile
-    user.coverPhoto=cover
-
-    await user.save({validateBeforeSave:false})
-
-    const newUser=User.findById(user._id).select("-password -refreshToken -accessToken")
-    if(!newUser) throw new ApiError(400,"new user creation failed")
 
     const options={
         httpOnly:true,
@@ -230,6 +228,34 @@ const removeSkillWanted=asyncHandler(async(req,res)=>{
     )
 })
 
+const toggleAvailability=asyncHandler(async(req,res)=>{
+    const {_id}=req.user
+    const user=await User.findById(_id)
+    if(!user) throw new ApiError(402,"no user found")
+
+    user.availability=!user.availability
+    user.save({validateBeforeSave:false})
+
+    res.json(
+        new ApiResponse(200,{},"toggle availability")
+    )
+})
+
+
+const toggleStatus=asyncHandler(async(req,res)=>{
+    const {_id}=req.user
+    const user=await User.findById(_id)
+    if(!user) throw new ApiError(402,"no user found")
+
+    if(user.status=="private") user.status="public"
+    else user.status="private"
+    user.save({validateBeforeSave:false})
+
+    res.json(
+        new ApiResponse(200,{},"toggle status")
+    )
+})
+
 module.exports={
     login,
     register,
@@ -238,5 +264,7 @@ module.exports={
     addSkillOffered,
     addSkillWanted,
     removeSkillOffered,
-    removeSkillWanted
+    removeSkillWanted,
+    toggleAvailability,
+    toggleStatus
 };

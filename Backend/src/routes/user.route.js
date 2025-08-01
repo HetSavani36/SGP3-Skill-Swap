@@ -10,7 +10,9 @@ const {
     addSkillOffered,
     addSkillWanted,
     removeSkillOffered,
-    removeSkillWanted
+    removeSkillWanted,
+    toggleAvailability,
+    toggleStatus
 }=require('../controllers/user.controller')
 const upload = require('../middlewares/multer.middleware')
 
@@ -30,5 +32,8 @@ router.post('/skill/wanted/add',verifyJWT,addSkillWanted)
 
 router.post('/skill/offered/remove',verifyJWT,removeSkillOffered)
 router.post('/skill/wanted/remove',verifyJWT,removeSkillWanted)
+
+router.post('/toggle/availability',verifyJWT,toggleAvailability)
+router.post('/toggle/status',verifyJWT,toggleStatus)
 
 module.exports=router
